@@ -1,29 +1,48 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { GamepadIcon, Heart, MessageSquare, Dice6 } from 'lucide-react';
+import { GamepadIcon, Heart, MessageSquare, Dice6, Sparkles, Star } from 'lucide-react';
 import { useState } from 'react';
 
+// ====== GAME DATA ======
 const games = [
   {
+    id: "questions",
     name: "Love Questions",
     description: "Deep questions to know each other better",
     icon: MessageSquare,
-    color: "bg-primary-soft text-primary"
+    color: "bg-primary-soft text-primary",
   },
   {
+    id: "dice",
     name: "Date Ideas Dice",
     description: "Roll for a random date activity",
     icon: Dice6,
-    color: "bg-accent-soft text-accent"
+    color: "bg-accent-soft text-accent",
   },
   {
+    id: "memory",
     name: "Memory Lane",
     description: "Share your favorite memories together",
     icon: Heart,
-    color: "bg-secondary-soft text-secondary-foreground"
-  }
+    color: "bg-secondary-soft text-secondary-foreground",
+  },
+  {
+    id: "wouldYouRather",
+    name: "Would You Rather",
+    description: "Play fun & quirky couple scenarios",
+    icon: Sparkles,
+    color: "bg-pink-100 text-pink-600",
+  },
+  {
+    id: "futureDreams",
+    name: "Future Dreams",
+    description: "Explore dreams and goals together",
+    icon: Star,
+    color: "bg-yellow-100 text-yellow-600",
+  },
 ];
 
+// ====== GAME CONTENT ======
 const loveQuestions = [
   "What's your favorite memory of us together?",
   "If we could travel anywhere in the world, where would you want to go?",
@@ -44,37 +63,81 @@ const dateIdeas = [
   "☕ Try a new coffee shop or café",
 ];
 
+const wouldYouRather = [
+  "Would you rather travel the world with me or build our dream home together?",
+  "Would you rather have a fancy dinner date or a cozy movie night at home?",
+  "Would you rather go skydiving with me or take a long road trip?",
+  "Would you rather relive our first date or fast-forward to our 10th anniversary?",
+  "Would you rather write each other love letters or make a photo album together?",
+];
+
+const futureDreams = [
+  "Where do you imagine us living in 10 years?",
+  "What's a dream vacation we should plan for?",
+  "What's a tradition you'd like to start together?",
+  "What’s something on your bucket list we could do as a couple?",
+  "If we had unlimited money, what’s the first thing you’d want us to do?",
+];
+
+// ====== HELPER FUNCTION ======
+const getRandomItem = (list: string[]) => list[Math.floor(Math.random() * list.length)];
+
 export function CoupleGames() {
   const [activeGame, setActiveGame] = useState<string | null>(null);
-  const [currentQuestion, setCurrentQuestion] = useState('');
-  const [currentDateIdea, setCurrentDateIdea] = useState('');
+  const [currentContent, setCurrentContent] = useState('');
+  const [score, setScore] = useState(0);
 
-  const playLoveQuestions = () => {
-    const randomQuestion = loveQuestions[Math.floor(Math.random() * loveQuestions.length)];
-    setCurrentQuestion(randomQuestion);
-    setActiveGame('questions');
+  const handlePlay = (gameId: string) => {
+    setActiveGame(gameId);
+    setScore((prev) => prev + 1);
+
+    switch (gameId) {
+      case "questions":
+        setCurrentContent(getRandomItem(loveQuestions));
+        break;
+      case "dice":
+        setCurrentContent(getRandomItem(dateIdeas));
+        break;
+      case "wouldYouRather":
+        setCurrentContent(getRandomItem(wouldYouRather));
+        break;
+      case "futureDreams":
+        setCurrentContent(getRandomItem(futureDreams));
+        break;
+      case "memory":
+        setCurrentContent("💭 Share one of your favorite memories together!");
+        break;
+      default:
+        setCurrentContent('');
+    }
   };
 
-  const rollDateDice = () => {
-    const randomIdea = dateIdeas[Math.floor(Math.random() * dateIdeas.length)];
-    setCurrentDateIdea(randomIdea);
-    setActiveGame('dice');
+  const handleNext = () => {
+    if (!activeGame) return;
+    handlePlay(activeGame);
   };
 
   return (
     <Card className="shadow-soft">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <GamepadIcon className="h-5 w-5 text-primary" />
-          Couple Games
+        <CardTitle className="flex items-center gap-2 justify-between w-full">
+          <span className="flex items-center gap-2">
+            <GamepadIcon className="h-5 w-5 text-primary" />
+            Couple Games
+          </span>
+          <span className="text-sm font-medium text-muted-foreground">
+            ⭐ Score: {score}
+          </span>
         </CardTitle>
       </CardHeader>
+
       <CardContent className="space-y-4">
+        {/* GAME LIST */}
         <div className="grid gap-3">
-          {games.map((game, index) => {
+          {games.map((game) => {
             const Icon = game.icon;
             return (
-              <div key={index} className="p-3 bg-gradient-soft rounded-lg border border-border/50">
+              <div key={game.id} className="p-3 bg-gradient-soft rounded-lg border border-border/50">
                 <div className="flex items-center gap-3 mb-2">
                   <div className={`p-2 rounded-full ${game.color}`}>
                     <Icon className="h-4 w-4" />
@@ -88,38 +151,33 @@ export function CoupleGames() {
                   size="sm" 
                   variant="outline" 
                   className="w-full"
-                  onClick={() => {
-                    if (game.name === "Love Questions") playLoveQuestions();
-                    if (game.name === "Date Ideas Dice") rollDateDice();
-                    if (game.name === "Memory Lane") setActiveGame('memory');
-                  }}
+                  onClick={() => handlePlay(game.id)}
                 >
                   Play Now
                 </Button>
+
+                {/* Show content directly below THIS game when active */}
+                {activeGame === game.id && currentContent && (
+                  <div className="mt-3 p-3 bg-gradient-to-br from-pink-50 to-purple-50 rounded-lg border border-border/40">
+                    <h3 className="font-medium text-primary mb-2">
+                      {game.id === "questions" && "💕 Love Question"}
+                      {game.id === "dice" && "🎲 Date Idea"}
+                      {game.id === "memory" && "📸 Memory Lane"}
+                      {game.id === "wouldYouRather" && "✨ Would You Rather"}
+                      {game.id === "futureDreams" && "🌟 Future Dreams"}
+                    </h3>
+                    <p className="text-sm mb-3">{currentContent}</p>
+                    {game.id !== "memory" && (
+                      <Button size="sm" onClick={handleNext} className="bg-gradient-romantic">
+                        {game.id === "dice" ? "Roll Again" : "Next"}
+                      </Button>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })}
         </div>
-
-        {activeGame === 'questions' && currentQuestion && (
-          <div className="p-4 bg-primary-soft rounded-lg border border-primary/20">
-            <h3 className="font-medium text-primary mb-2">💕 Love Question</h3>
-            <p className="text-sm mb-3">{currentQuestion}</p>
-            <Button size="sm" onClick={playLoveQuestions} className="bg-gradient-romantic">
-              Next Question
-            </Button>
-          </div>
-        )}
-
-        {activeGame === 'dice' && currentDateIdea && (
-          <div className="p-4 bg-accent-soft rounded-lg border border-accent/20">
-            <h3 className="font-medium text-accent mb-2">🎲 Date Idea</h3>
-            <p className="text-sm mb-3">{currentDateIdea}</p>
-            <Button size="sm" onClick={rollDateDice} className="bg-gradient-romantic">
-              Roll Again
-            </Button>
-          </div>
-        )}
       </CardContent>
     </Card>
   );
