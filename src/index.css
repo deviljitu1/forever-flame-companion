@@ -119,3 +119,72 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+@layer components {
+  /* Mood tracker specific animations */
+  .mood-button {
+    @apply transition-all duration-300 ease-in-out;
+  }
+  
+  .mood-button:hover {
+    @apply scale-105 shadow-lg;
+  }
+  
+  .mood-button.selected {
+    @apply scale-110 shadow-xl;
+  }
+  
+  .feeling-input {
+    @apply transition-all duration-200 ease-in-out;
+  }
+  
+  .feeling-input:focus {
+    @apply ring-2 ring-primary/20 border-primary/50;
+  }
+  
+  .consolation-suggestion {
+    @apply transition-all duration-200 ease-in-out cursor-pointer;
+  }
+  
+  .consolation-suggestion:hover {
+    @apply scale-[1.02] shadow-md;
+  }
+  
+  .mood-card {
+    @apply transition-all duration-300 ease-in-out;
+  }
+  
+  .mood-card:hover {
+    @apply shadow-lg;
+  }
+  
+  /* Pulse animation for new mood updates */
+  .pulse-gentle {
+    animation: pulse-gentle 2s ease-in-out infinite;
+  }
+  
+  @keyframes pulse-gentle {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.8;
+    }
+  }
+  
+  /* Fade in animation for suggestions */
+  .fade-in {
+    animation: fade-in 0.5s ease-in-out;
+  }
+  
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
