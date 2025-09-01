@@ -14,7 +14,240 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      game_sessions: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          game_data: Json | null
+          game_type: string
+          id: string
+          status: string | null
+          user1_id: string
+          user2_id: string
+          winner_id: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          game_data?: Json | null
+          game_type: string
+          id?: string
+          status?: string | null
+          user1_id: string
+          user2_id: string
+          winner_id?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          game_data?: Json | null
+          game_type?: string
+          id?: string
+          status?: string | null
+          user1_id?: string
+          user2_id?: string
+          winner_id?: string | null
+        }
+        Relationships: []
+      }
+      gift_plans: {
+        Row: {
+          budget_range: string | null
+          created_at: string
+          description: string | null
+          id: string
+          occasion: string | null
+          partner_id: string | null
+          status: string | null
+          target_date: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          budget_range?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          occasion?: string | null
+          partner_id?: string | null
+          status?: string | null
+          target_date?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          budget_range?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          occasion?: string | null
+          partner_id?: string | null
+          status?: string | null
+          target_date?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      love_messages: {
+        Row: {
+          created_at: string
+          id: string
+          is_ai_generated: boolean | null
+          is_read: boolean | null
+          message_text: string
+          message_type: string | null
+          recipient_id: string | null
+          sender_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_ai_generated?: boolean | null
+          is_read?: boolean | null
+          message_text: string
+          message_type?: string | null
+          recipient_id?: string | null
+          sender_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_ai_generated?: boolean | null
+          is_read?: boolean | null
+          message_text?: string
+          message_type?: string | null
+          recipient_id?: string | null
+          sender_id?: string
+        }
+        Relationships: []
+      }
+      mood_entries: {
+        Row: {
+          created_at: string
+          id: string
+          mood_label: string
+          mood_type: string
+          note: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          mood_label: string
+          mood_type: string
+          note?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          mood_label?: string
+          mood_type?: string
+          note?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      partnerships: {
+        Row: {
+          created_at: string
+          id: string
+          status: string
+          user1_id: string
+          user2_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          status?: string
+          user1_id: string
+          user2_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          status?: string
+          user1_id?: string
+          user2_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          partner_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          partner_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          partner_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      special_dates: {
+        Row: {
+          created_at: string
+          date_value: string | null
+          days_notice: number | null
+          id: string
+          is_active: boolean | null
+          name: string
+          partner_id: string | null
+          recurrence_day: number | null
+          recurrence_type: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date_value?: string | null
+          days_notice?: number | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          partner_id?: string | null
+          recurrence_day?: number | null
+          recurrence_type?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date_value?: string | null
+          days_notice?: number | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          partner_id?: string | null
+          recurrence_day?: number | null
+          recurrence_type?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
