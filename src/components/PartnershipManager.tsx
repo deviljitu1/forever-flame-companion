@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -16,7 +17,8 @@ import {
   UserPlus, 
   Clock,
   AlertCircle,
-  Trash2
+  Trash2,
+  Loader2
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -46,6 +48,7 @@ export function PartnershipManager() {
   const [joiningPartnership, setJoiningPartnership] = useState(false);
 
   useEffect(() => {
+    console.log('PartnershipManager mounted, user:', user?.id);
     if (user) {
       loadPartnerships();
       generateInviteCode();
@@ -55,6 +58,7 @@ export function PartnershipManager() {
   const loadPartnerships = async () => {
     if (!user) return;
 
+    console.log('Loading partnerships for user:', user.id);
     try {
       // Get partnerships where user is involved
       const { data: partnershipsData, error: partnershipsError } = await supabase
@@ -65,6 +69,7 @@ export function PartnershipManager() {
 
       if (partnershipsError) throw partnershipsError;
 
+      console.log('Partnerships loaded:', partnershipsData);
       setPartnerships((partnershipsData || []) as Partnership[]);
 
       // Get partner profiles
@@ -73,6 +78,8 @@ export function PartnershipManager() {
           p.user1_id === user.id ? p.user2_id : p.user1_id
         );
 
+        console.log('Loading partner profiles for IDs:', partnerIds);
+
         const { data: profilesData, error: profilesError } = await supabase
           .from('profiles')
           .select('*')
@@ -80,6 +87,7 @@ export function PartnershipManager() {
 
         if (profilesError) throw profilesError;
 
+        console.log('Partner profiles loaded:', profilesData);
         setPartnerProfiles(profilesData || []);
       }
     } catch (error) {
@@ -94,18 +102,21 @@ export function PartnershipManager() {
     // Generate a simple invite code based on user ID
     if (user) {
       const code = btoa(user.id).replace(/[^a-zA-Z0-9]/g, '').substring(0, 8).toUpperCase();
+      console.log('Generated invite code:', code);
       setInviteCode(code);
     }
   };
 
   const copyInviteLink = async () => {
     const inviteLink = `${window.location.origin}?invite=${inviteCode}`;
+    console.log('Copying invite link:', inviteLink);
     try {
       await navigator.clipboard.writeText(inviteLink);
       setCopied(true);
       toast.success('Invite link copied to clipboard!');
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
+      console.error('Failed to copy invite link:', error);
       toast.error('Failed to copy invite link');
     }
   };
@@ -232,11 +243,33 @@ export function PartnershipManager() {
   const activePartnership = partnerships.find(p => p.status === 'accepted');
   const pendingPartnerships = partnerships.filter(p => p.status === 'pending');
 
+  console.log('Rendering PartnershipManager:', {
+    user: user?.id,
+    loading,
+    inviteCode,
+    partnerships: partnerships.length,
+    activePartnership: !!activePartnership,
+    pendingPartnerships: pendingPartnerships.length
+  });
+
   if (loading) {
     return (
       <Card>
         <CardContent className="p-6 text-center">
-          <div className="animate-pulse">Loading partnerships...</div>
+          <div className="flex items-center justify-center gap-2">
+            <Loader2 className="h-5 w-5 animate-spin" />
+            <span>Loading partnerships...</span>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!user) {
+    return (
+      <Card>
+        <CardContent className="p-6 text-center">
+          <div className="text-red-600">Please log in to manage partnerships</div>
         </CardContent>
       </Card>
     );
@@ -244,6 +277,17 @@ export function PartnershipManager() {
 
   return (
     <div className="space-y-6">
+      {/* Debug Info - Remove this in production */}
+      <Card className="border-blue-200 bg-blue-50">
+        <CardContent className="p-4">
+          <p className="text-sm text-blue-800">
+            Debug: User ID: {user.id.substring(0, 8)}..., 
+            Invite Code: {inviteCode}, 
+            Partnerships: {partnerships.length}
+          </p>
+        </CardContent>
+      </Card>
+
       {/* Active Partnership */}
       {activePartnership && (
         <Card className="border-green-200 bg-green-50">
