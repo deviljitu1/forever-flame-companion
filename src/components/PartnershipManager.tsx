@@ -93,7 +93,8 @@ export function PartnershipManager() {
   const generateInviteCode = () => {
     // Generate a simple invite code based on user ID
     if (user) {
-      const code = btoa(user.id).replace(/[^a-zA-Z0-9]/g, '').substring(0, 8).toUpperCase();
+      // Use a simpler approach - just use first 8 chars of user ID
+      const code = user.id.replace(/-/g, '').substring(0, 8).toUpperCase();
       setInviteCode(code);
     }
   };
@@ -115,8 +116,19 @@ export function PartnershipManager() {
 
     setJoiningPartnership(true);
     try {
-      // Decode the invite code to get the inviting user's ID
-      const inviterUserId = atob(joinCode.replace(/[^a-zA-Z0-9]/g, '') + '===').substring(0, 36);
+      // Find the user whose invite code matches
+      const { data: inviterProfile, error: profileError } = await supabase
+        .from('profiles')
+        .select('user_id')
+        .like('user_id', `${joinCode.toLowerCase().substring(0, 8)}%`)
+        .single();
+
+      if (profileError || !inviterProfile) {
+        toast.error('Invalid invite code');
+        return;
+      }
+
+      const inviterUserId = inviterProfile.user_id;
       
       // Check if this user exists and if there's already a partnership
       const { data: existingPartnership } = await supabase

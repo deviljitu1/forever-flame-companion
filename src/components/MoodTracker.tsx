@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 import { Heart, Smile, Meh, Frown, HeartCrack, Send, Lightbulb, Coffee, Music, Camera, Gift, RefreshCw, ChevronDown, ChevronUp, Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -270,7 +271,7 @@ export function MoodTracker() {
         {/* Partner's Mood Section */}
         <div className="pt-3 sm:pt-4 border-t">
           <div className="flex items-center justify-between mb-2 sm:mb-3">
-            <h3 className="text-sm font-medium">Your Partner's Mood</h3>
+            <h3 className="text-sm font-medium text-primary">💕 Your Partner's Mood</h3>
             <Button
               variant="ghost"
               size="sm"
@@ -281,26 +282,76 @@ export function MoodTracker() {
               <RefreshCw className={`h-3 w-3 ${isRefreshing ? 'animate-spin' : ''}`} />
             </Button>
           </div>
-          <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-gradient-soft rounded-lg">
-            {(() => {
-              const Icon = moods[partnerMood].icon;
-              return <Icon className={`h-5 w-5 sm:h-6 sm:w-6 ${moods[partnerMood].color}`} />;
-            })()}
-            <div className="min-w-0 flex-1">
-              <p className="font-medium text-sm sm:text-base">{moods[partnerMood].label}</p>
-              {partnerMoodData?.note && (
-                <p className="text-xs sm:text-sm text-muted-foreground mt-1 italic">
-                  "{partnerMoodData.note}"
-                </p>
+          
+          {partnerMoodData ? (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-gradient-romantic/5 rounded-lg border border-primary/10">
+                {(() => {
+                  const Icon = moods[partnerMood].icon;
+                  return <Icon className={`h-6 w-6 sm:h-7 sm:w-7 ${moods[partnerMood].color}`} />;
+                })()}
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <p className="font-semibold text-base sm:text-lg">{moods[partnerMood].label}</p>
+                    <Badge variant="secondary" className="text-xs">
+                      {new Date(partnerMoodData.created_at).toLocaleDateString() === new Date().toLocaleDateString() 
+                        ? 'Today' 
+                        : new Date(partnerMoodData.created_at).toLocaleDateString()
+                      }
+                    </Badge>
+                  </div>
+                  {partnerMoodData.note && (
+                    <div className="mt-2 p-2 bg-muted/50 rounded-md">
+                      <p className="text-sm text-muted-foreground italic">
+                        💭 "{partnerMoodData.note}"
+                      </p>
+                    </div>
+                  )}
+                  <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    Last updated: {new Date(partnerMoodData.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </p>
+                </div>
+              </div>
+              
+              {/* Mood-specific message */}
+              {partnerMoodData.mood_type === 'sad' && (
+                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-sm text-blue-800 font-medium">
+                    💙 Your partner seems sad. Maybe send them a sweet message!
+                  </p>
+                </div>
               )}
-              <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-                {partnerMoodData?.created_at 
-                  ? `Updated ${new Date(partnerMoodData.created_at).toLocaleDateString()}`
-                  : 'Maybe send them a sweet message! 💕'
-                }
+              {partnerMoodData.mood_type === 'upset' && (
+                <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                  <p className="text-sm text-orange-800 font-medium">
+                    🧡 Your partner is feeling upset. Consider reaching out with support.
+                  </p>
+                </div>
+              )}
+              {partnerMoodData.mood_type === 'happy' && (
+                <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                  <p className="text-sm text-green-800 font-medium">
+                    💚 Your partner is happy! Perfect time to celebrate together.
+                  </p>
+                </div>
+              )}
+              {partnerMoodData.mood_type === 'in_love' && (
+                <div className="p-3 bg-pink-50 border border-pink-200 rounded-lg">
+                  <p className="text-sm text-pink-800 font-medium">
+                    💖 Your partner is feeling the love! Share this beautiful moment.
+                  </p>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="p-3 sm:p-4 bg-muted/30 rounded-lg text-center">
+              <Heart className="h-8 w-8 mx-auto mb-2 text-muted-foreground/50" />
+              <p className="text-sm text-muted-foreground">
+                No partner mood data yet. Connect with your partner to see their mood updates!
               </p>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Consolation Suggestions */}
