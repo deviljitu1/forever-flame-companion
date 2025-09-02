@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { Navigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 import { MoodTracker } from '@/components/MoodTracker';
 import { GiftPlanner } from '@/components/GiftPlanner';
 import { SpecialDates } from '@/components/SpecialDates';
@@ -6,11 +8,12 @@ import { LoveMessages } from '@/components/LoveMessages';
 import { CoupleGames } from '@/components/CoupleGames';
 import { NotificationPanel } from '@/components/NotificationPanel';
 import { SettingsPanel } from '@/components/SettingsPanel';
+import { PartnershipManager } from '@/components/PartnershipManager';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Heart, Users, Bell, Settings, Calendar, Gift, MessageCircle, Star, Home, Smile, Gamepad2 } from 'lucide-react';
+import { Heart, Users, Bell, Settings, Calendar, Gift, MessageCircle, Star, Home, Smile, Gamepad2, LogOut } from 'lucide-react';
 
 // Placeholder for missing components
 const MissingComponent = ({ name }: { name: string }) => (
@@ -27,10 +30,38 @@ const ActualNotificationPanel = NotificationPanel || (({ children }) => <>{child
 const ActualSettingsPanel = SettingsPanel || (({ children }) => <>{children}</>);
 
 const Index = () => {
+  const { user, loading, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isConnected, setIsConnected] = useState(false);
   const [partnerStatus, setPartnerStatus] = useState('offline');
   const [unreadNotifications, setUnreadNotifications] = useState(3);
+
+  // Check for invite code in URL
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const inviteCode = urlParams.get('invite');
+    if (inviteCode && user) {
+      setActiveTab('connect');
+      // Clear the URL parameter
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, [user]);
+
+  // Redirect to auth if not authenticated
+  if (!user && !loading) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-purple-50 flex items-center justify-center">
+        <div className="text-center">
+          <Heart className="h-8 w-8 animate-pulse text-pink-500 mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading your love journey...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Simulate partner connection status
   useEffect(() => {
@@ -100,6 +131,10 @@ const Index = () => {
                   <Settings className="h-4 w-4" />
                 </Button>
               </ActualSettingsPanel>
+
+              <Button variant="ghost" size="icon" onClick={signOut} title="Sign out">
+                <LogOut className="h-4 w-4" />
+              </Button>
             </div>
 
             <div className="flex md:hidden items-center gap-2">
@@ -127,10 +162,14 @@ const Index = () => {
       <main className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
         {/* Navigation Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-          <TabsList className="grid grid-cols-5 md:grid-cols-7 mb-4 bg-muted/50">
+          <TabsList className="grid grid-cols-6 md:grid-cols-8 mb-4 bg-muted/50">
             <TabsTrigger value="dashboard" className="text-xs md:text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-red-500 data-[state=active]:text-white">
               <Home className="h-3 w-3 md:mr-1" />
               <span className="hidden md:inline">Dashboard</span>
+            </TabsTrigger>
+            <TabsTrigger value="connect" className="text-xs md:text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-red-500 data-[state=active]:text-white">
+              <Users className="h-3 w-3 md:mr-1" />
+              <span className="hidden md:inline">Connect</span>
             </TabsTrigger>
             <TabsTrigger value="mood" className="text-xs md:text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-red-500 data-[state=active]:text-white">
               <Smile className="h-3 w-3 md:mr-1" />
@@ -293,6 +332,11 @@ const Index = () => {
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+
+          {/* Connect Tab */}
+          <TabsContent value="connect" className="space-y-6">
+            <PartnershipManager />
           </TabsContent>
 
           {/* Mood Tab */}
