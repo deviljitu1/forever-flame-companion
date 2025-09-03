@@ -35,7 +35,7 @@ interface Profile {
   avatar_url?: string;
 }
 
-export function PartnershipManager({ initialInviteCode }: { initialInviteCode?: string }) {
+export function PartnershipManager() {
   const { user } = useAuth();
   const [partnerships, setPartnerships] = useState<Partnership[]>([]);
   const [partnerProfiles, setPartnerProfiles] = useState<Profile[]>([]);
@@ -49,15 +49,17 @@ export function PartnershipManager({ initialInviteCode }: { initialInviteCode?: 
     if (user) {
       loadPartnerships();
       generateInviteCode();
+      
+      // Check for invite code in URL once when component mounts
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlInviteCode = urlParams.get('invite');
+      if (urlInviteCode) {
+        setJoinCode(urlInviteCode);
+        // Clear the URL parameter
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
     }
   }, [user]);
-
-  // Set initial invite code from URL parameter
-  useEffect(() => {
-    if (initialInviteCode) {
-      setJoinCode(initialInviteCode);
-    }
-  }, [initialInviteCode]);
 
   const loadPartnerships = async () => {
     if (!user) return;

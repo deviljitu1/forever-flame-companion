@@ -35,17 +35,13 @@ const Index = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [partnerStatus, setPartnerStatus] = useState('offline');
   const [unreadNotifications, setUnreadNotifications] = useState(3);
-  const [urlInviteCode, setUrlInviteCode] = useState<string | null>(null);
 
-  // Check for invite code in URL
+  // Check for invite code in URL and switch to connect tab
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const inviteCode = urlParams.get('invite');
     if (inviteCode) {
-      setUrlInviteCode(inviteCode);
       setActiveTab('connect');
-      // Clear the URL parameter
-      window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, []);
 
@@ -338,7 +334,7 @@ const Index = () => {
 
           {/* Connect Tab */}
           <TabsContent value="connect" className="space-y-6">
-            <PartnershipManager initialInviteCode={urlInviteCode || undefined} />
+            <PartnershipManager />
           </TabsContent>
 
           {/* Mood Tab */}
