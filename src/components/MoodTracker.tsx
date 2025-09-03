@@ -57,9 +57,13 @@ export function MoodTracker() {
 
   // Fetch partner's latest mood
   useEffect(() => {
-    fetchPartnerMood();
-    fetchMoodHistory();
-  }, []);
+    const fetchInitialData = async () => {
+      await fetchPartnerMood();
+      await fetchMoodHistory();
+    };
+    
+    fetchInitialData();
+  }, []); // Only run once on mount
 
   const fetchPartnerMood = async (showUpdateNotification = false) => {
     try {
@@ -95,13 +99,13 @@ export function MoodTracker() {
         const latestMood = moodEntries[0];
         const moodIndex = moods.findIndex(m => m.value === latestMood.mood_type);
         if (moodIndex !== -1) {
-          // Check if mood has changed
-          const previousMoodData = partnerMoodData;
+          // Check if mood has changed using a simple comparison
+          const previousMoodType = partnerMoodData?.mood_type;
           setPartnerMood(moodIndex);
           setPartnerMoodData(latestMood);
           
           // Show notification if mood changed and it's a manual refresh
-          if (showUpdateNotification && previousMoodData && previousMoodData.mood_type !== latestMood.mood_type) {
+          if (showUpdateNotification && previousMoodType && previousMoodType !== latestMood.mood_type) {
             setPartnerMoodUpdated(true);
             setTimeout(() => setPartnerMoodUpdated(false), 3000);
           }
