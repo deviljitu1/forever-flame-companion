@@ -127,6 +127,7 @@ export function PartnershipManager() {
     try {
       // Find the user whose user_id starts with the invite code (first 8 chars without dashes)
       const searchPattern = joinCode.toLowerCase().replace(/-/g, '');
+      console.log('Searching for invite code:', joinCode, 'Pattern:', searchPattern);
       
       // Get all profiles and find the one whose user_id (without dashes) starts with our code
       const { data: allProfiles, error: profilesError } = await supabase
@@ -134,19 +135,30 @@ export function PartnershipManager() {
         .select('user_id, display_name')
         .not('user_id', 'eq', user.id); // Exclude current user
 
+      console.log('Profiles found:', allProfiles, 'Error:', profilesError);
+
       if (profilesError) {
         console.error('Error fetching profiles:', profilesError);
         toast.error('Failed to search for invite code');
         return;
       }
 
-      // Find matching profile
-      const inviterProfile = allProfiles?.find(profile => 
-        profile.user_id.replace(/-/g, '').toLowerCase().startsWith(searchPattern)
-      );
+      if (!allProfiles || allProfiles.length === 0) {
+        toast.error('No users found. Make sure your partner has signed up first.');
+        return;
+      }
+
+      // Find matching profile - check both lowercase versions
+      const inviterProfile = allProfiles?.find(profile => {
+        const profilePattern = profile.user_id.replace(/-/g, '').toLowerCase();
+        console.log('Checking profile:', profile.user_id, 'Pattern:', profilePattern, 'Starts with search:', profilePattern.startsWith(searchPattern));
+        return profilePattern.startsWith(searchPattern);
+      });
+
+      console.log('Found inviter profile:', inviterProfile);
 
       if (!inviterProfile) {
-        toast.error('Invalid invite code - no matching user found');
+        toast.error(`Invalid invite code "${joinCode}". Make sure your partner has created their account and shared the correct code.`);
         return;
       }
 
