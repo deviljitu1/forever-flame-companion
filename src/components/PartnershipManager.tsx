@@ -35,7 +35,7 @@ interface Profile {
   avatar_url?: string;
 }
 
-export function PartnershipManager() {
+export function PartnershipManager({ initialInviteCode }: { initialInviteCode?: string }) {
   const { user } = useAuth();
   const [partnerships, setPartnerships] = useState<Partnership[]>([]);
   const [partnerProfiles, setPartnerProfiles] = useState<Profile[]>([]);
@@ -51,6 +51,13 @@ export function PartnershipManager() {
       generateInviteCode();
     }
   }, [user]);
+
+  // Set initial invite code from URL parameter
+  useEffect(() => {
+    if (initialInviteCode) {
+      setJoinCode(initialInviteCode);
+    }
+  }, [initialInviteCode]);
 
   const loadPartnerships = async () => {
     if (!user) return;
@@ -116,15 +123,28 @@ export function PartnershipManager() {
 
     setJoiningPartnership(true);
     try {
-      // Find the user whose invite code matches
-      const { data: inviterProfile, error: profileError } = await supabase
+      // Find the user whose user_id starts with the invite code (first 8 chars without dashes)
+      const searchPattern = joinCode.toLowerCase().replace(/-/g, '');
+      
+      // Get all profiles and find the one whose user_id (without dashes) starts with our code
+      const { data: allProfiles, error: profilesError } = await supabase
         .from('profiles')
-        .select('user_id')
-        .like('user_id', `${joinCode.toLowerCase().substring(0, 8)}%`)
-        .single();
+        .select('user_id, display_name')
+        .not('user_id', 'eq', user.id); // Exclude current user
 
-      if (profileError || !inviterProfile) {
-        toast.error('Invalid invite code');
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
+        toast.error('Failed to search for invite code');
+        return;
+      }
+
+      // Find matching profile
+      const inviterProfile = allProfiles?.find(profile => 
+        profile.user_id.replace(/-/g, '').toLowerCase().startsWith(searchPattern)
+      );
+
+      if (!inviterProfile) {
+        toast.error('Invalid invite code - no matching user found');
         return;
       }
 
