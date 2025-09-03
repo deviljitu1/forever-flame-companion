@@ -45,6 +45,16 @@ const Index = () => {
     }
   }, []);
 
+  // Simulate partner connection status
+  useEffect(() => {
+    const statuses = ['online', 'offline', 'away'];
+    const interval = setInterval(() => {
+      setPartnerStatus(statuses[Math.floor(Math.random() * statuses.length)]);
+    }, 30000);
+    
+    return () => clearInterval(interval);
+  }, []);
+
   // Redirect to auth if not authenticated
   if (!user && !loading) {
     return <Navigate to="/auth" replace />;
@@ -60,16 +70,6 @@ const Index = () => {
       </div>
     );
   }
-
-  // Simulate partner connection status
-  useEffect(() => {
-    const statuses = ['online', 'offline', 'away'];
-    const interval = setInterval(() => {
-      setPartnerStatus(statuses[Math.floor(Math.random() * statuses.length)]);
-    }, 30000);
-    
-    return () => clearInterval(interval);
-  }, []);
 
   const handleConnectPartner = () => {
     setIsConnected(true);
