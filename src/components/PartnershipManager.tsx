@@ -100,10 +100,10 @@ export function PartnershipManager() {
   };
 
   const generateInviteCode = () => {
-    // Generate a simple invite code based on user ID
     if (user) {
-      // Use a simpler approach - just use first 8 chars of user ID
+      // Generate invite code from first 8 chars of user ID (without dashes)
       const code = user.id.replace(/-/g, '').substring(0, 8).toUpperCase();
+      console.log('Generated invite code for user', user.id, ':', code);
       setInviteCode(code);
     }
   };
@@ -121,89 +121,133 @@ export function PartnershipManager() {
   };
 
   const joinWithCode = async () => {
-    if (!user || !joinCode.trim()) return;
+    if (!user || !joinCode.trim()) {
+      toast.error('Please enter an invite code');
+      return;
+    }
 
     setJoiningPartnership(true);
     try {
-      // Find the user whose user_id starts with the invite code (first 8 chars without dashes)
-      const searchPattern = joinCode.toLowerCase().replace(/-/g, '');
-      console.log('Searching for invite code:', joinCode, 'Pattern:', searchPattern);
+      // Clean and validate invite code - should be 8 alphanumeric characters
+      const cleanCode = joinCode.replace(/-/g, '').toLowerCase().trim();
+      console.log('=== JOIN WITH CODE DEBUG ===');
+      console.log('Original code:', joinCode);
+      console.log('Clean code:', cleanCode);
+      console.log('Current user:', user.id);
       
-      // Get all profiles and find the one whose user_id (without dashes) starts with our code
+      if (cleanCode.length !== 8) {
+        toast.error('Invite code must be exactly 8 characters');
+        return;
+      }
+      
+      // Get all profiles to find the matching one
       const { data: allProfiles, error: profilesError } = await supabase
         .from('profiles')
-        .select('user_id, display_name')
-        .not('user_id', 'eq', user.id); // Exclude current user
+        .select('user_id, display_name');
 
-      console.log('Profiles found:', allProfiles, 'Error:', profilesError);
+      console.log('All profiles:', allProfiles);
+      console.log('Profiles error:', profilesError);
 
       if (profilesError) {
         console.error('Error fetching profiles:', profilesError);
-        toast.error('Failed to search for invite code');
+        toast.error('Database error while searching for invite code');
         return;
       }
 
       if (!allProfiles || allProfiles.length === 0) {
-        toast.error('No users found. Make sure your partner has signed up first.');
+        toast.error('No users found in the system');
         return;
       }
 
-      // Find matching profile - check both lowercase versions
-      const inviterProfile = allProfiles?.find(profile => {
-        const profilePattern = profile.user_id.replace(/-/g, '').toLowerCase();
-        console.log('Checking profile:', profile.user_id, 'Pattern:', profilePattern, 'Starts with search:', profilePattern.startsWith(searchPattern));
-        return profilePattern.startsWith(searchPattern);
+      // Find the profile whose user_id (without dashes, lowercase) starts with our clean code
+      const matchingProfile = allProfiles.find(profile => {
+        const profileId = profile.user_id.replace(/-/g, '').toLowerCase();
+        const matches = profileId.startsWith(cleanCode);
+        console.log(`Profile ${profile.display_name} (${profile.user_id}): ${profileId} -> starts with ${cleanCode}? ${matches}`);
+        return matches && profile.user_id !== user.id; // Don't match self
       });
 
-      console.log('Found inviter profile:', inviterProfile);
+      console.log('Matching profile:', matchingProfile);
 
-      if (!inviterProfile) {
-        toast.error(`Invalid invite code "${joinCode}". Make sure your partner has created their account and shared the correct code.`);
+      if (!matchingProfile) {
+        const availableCodes = allProfiles
+          .filter(p => p.user_id !== user.id)
+          .map(p => ({
+            name: p.display_name,
+            code: p.user_id.replace(/-/g, '').substring(0, 8).toUpperCase()
+          }));
+        console.log('Available invite codes:', availableCodes);
+        toast.error(`Invalid invite code "${joinCode.toUpperCase()}". Make sure your partner has shared the correct code.`);
         return;
       }
 
-      const inviterUserId = inviterProfile.user_id;
-      
-      // Check if this user exists and if there's already a partnership
-      const { data: existingPartnership } = await supabase
+      // Check if partnership already exists
+      const { data: existingPartnership, error: partnershipError } = await supabase
         .from('partnerships')
         .select('*')
-        .or(`and(user1_id.eq.${user.id},user2_id.eq.${inviterUserId}),and(user1_id.eq.${inviterUserId},user2_id.eq.${user.id})`)
-        .single();
+        .or(`and(user1_id.eq.${user.id},user2_id.eq.${matchingProfile.user_id}),and(user1_id.eq.${matchingProfile.user_id},user2_id.eq.${user.id})`);
 
-      if (existingPartnership) {
-        toast.error('Partnership already exists with this user');
+      console.log('Existing partnership check:', existingPartnership, partnershipError);
+
+      if (partnershipError) {
+        console.error('Error checking existing partnership:', partnershipError);
+        toast.error('Database error while checking existing partnerships');
         return;
       }
 
-      // Create new partnership with the inviter as user1 and current user as user2
-      const { error } = await supabase
+      if (existingPartnership && existingPartnership.length > 0) {
+        toast.error(`You are already connected with ${matchingProfile.display_name}`);
+        return;
+      }
+
+      // Create new partnership
+      console.log('Creating partnership between:', user.id, 'and', matchingProfile.user_id);
+      
+      const { error: insertError } = await supabase
         .from('partnerships')
         .insert({
-          user1_id: inviterUserId,
-          user2_id: user.id,
+          user1_id: matchingProfile.user_id, // Inviter is user1
+          user2_id: user.id, // Joiner is user2  
           status: 'accepted' // Auto-accept when joining via code
         });
 
-      if (error) throw error;
+      if (insertError) {
+        console.error('Error creating partnership:', insertError);
+        toast.error('Failed to create partnership: ' + insertError.message);
+        return;
+      }
 
-      // Update profiles to link partners
-      await supabase
-        .from('profiles')
-        .update({ partner_id: user.id })
-        .eq('user_id', inviterUserId);
+      // Update both profiles to link partners
+      const updates = [
+        supabase
+          .from('profiles')
+          .update({ partner_id: user.id })
+          .eq('user_id', matchingProfile.user_id),
+        supabase
+          .from('profiles')
+          .update({ partner_id: matchingProfile.user_id })
+          .eq('user_id', user.id)
+      ];
 
-      await supabase
-        .from('profiles')
-        .update({ partner_id: inviterUserId })
-        .eq('user_id', user.id);
+      const updateResults = await Promise.all(updates);
+      console.log('Profile update results:', updateResults);
 
-      toast.success('Successfully joined partnership!');
+      // Check for update errors
+      const updateErrors = updateResults.filter(result => result.error);
+      if (updateErrors.length > 0) {
+        console.error('Errors updating profiles:', updateErrors);
+        toast.error('Partnership created but profile linking failed');
+      } else {
+        toast.success(`🎉 Successfully connected with ${matchingProfile.display_name}!`);
+      }
+
       setJoinCode('');
       await loadPartnerships();
+      console.log('=== JOIN COMPLETE ===');
+      
     } catch (error) {
-      console.error('Error joining partnership:', error);
-      toast.error('Failed to join partnership. Check the invite code.');
+      console.error('Unexpected error joining partnership:', error);
+      toast.error('Unexpected error occurred. Please try again.');
     } finally {
       setJoiningPartnership(false);
     }
