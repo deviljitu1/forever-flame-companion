@@ -159,12 +159,19 @@ export function PartnershipManager() {
         return;
       }
 
+      // Check if user is trying to use their own invite code
+      const ownCode = user.id.replace(/-/g, '').toLowerCase().substring(0, 8);
+      if (cleanCode === ownCode) {
+        toast.error("You cannot use your own invite code! Share your code with your partner instead.");
+        return;
+      }
+
       // Find the profile whose user_id (without dashes, lowercase) starts with our clean code
       const matchingProfile = allProfiles.find(profile => {
         const profileId = profile.user_id.replace(/-/g, '').toLowerCase();
         const matches = profileId.startsWith(cleanCode);
         console.log(`Profile ${profile.display_name} (${profile.user_id}): ${profileId} -> starts with ${cleanCode}? ${matches}`);
-        return matches && profile.user_id !== user.id; // Don't match self
+        return matches;
       });
 
       console.log('Matching profile:', matchingProfile);
@@ -176,8 +183,8 @@ export function PartnershipManager() {
             name: p.display_name,
             code: p.user_id.replace(/-/g, '').substring(0, 8).toUpperCase()
           }));
-        console.log('Available invite codes:', availableCodes);
-        toast.error(`Invalid invite code "${joinCode.toUpperCase()}". Make sure your partner has shared the correct code.`);
+        console.log('Available invite codes for testing:', availableCodes);
+        toast.error(`Invalid invite code "${joinCode.toUpperCase()}". Make sure your partner has created their account and shared the correct code.`);
         return;
       }
 
