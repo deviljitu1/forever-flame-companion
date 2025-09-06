@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Heart, Smile, Meh, Frown, HeartCrack, Send, Lightbulb, Coffee, Music, Camera, Gift, RefreshCw, ChevronDown, ChevronUp, Clock } from 'lucide-react';
+import { Heart, Smile, Meh, Frown, HeartCrack, Send, Lightbulb, Coffee, Music, Camera, Gift, RefreshCw, ChevronDown, ChevronUp, Clock, Sparkles, Bot } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const moods = [
   { icon: Heart, label: 'In Love', color: 'text-primary', bg: 'bg-primary-soft', value: 'in_love' },
@@ -54,6 +55,8 @@ export function MoodTracker() {
   const [partnerMoodUpdated, setPartnerMoodUpdated] = useState(false);
   const [showMoodHistory, setShowMoodHistory] = useState(false);
   const [moodHistory, setMoodHistory] = useState<any[]>([]);
+  const [aiHint, setAiHint] = useState<string | null>(null);
+  const [isGeneratingHint, setIsGeneratingHint] = useState(false);
 
   // Fetch partner's latest mood
   useEffect(() => {
@@ -173,6 +176,9 @@ export function MoodTracker() {
       setFeelingNote('');
       setSelectedMood(null);
       
+      // Generate AI hint for partner in the background
+      generateAIHintForPartner(selectedMoodData, feelingNote.trim());
+      
       // Refresh partner mood and history after submitting
       setTimeout(() => {
         fetchPartnerMood();
@@ -190,6 +196,72 @@ export function MoodTracker() {
       return consolationSuggestions[partnerMoodData.mood_type as keyof typeof consolationSuggestions] || [];
     }
     return consolationSuggestions[moods[partnerMood].value as keyof typeof consolationSuggestions] || [];
+  };
+
+  const generateAIHintForPartner = async (moodData: { value: string; label: string }, note: string) => {
+    try {
+      setIsGeneratingHint(true);
+      
+      // Get current user's profile to find partner
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('display_name, partner_id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!profile?.partner_id) {
+        console.log('No partner linked for AI hint generation');
+        return;
+      }
+
+      // Get partner's display name
+      const { data: partnerProfile } = await supabase
+        .from('profiles')
+        .select('display_name')
+        .eq('user_id', profile.partner_id)
+        .single();
+
+      const partnerName = partnerProfile?.display_name || 'Your partner';
+
+      // Get recent mood history for better context
+      const { data: recentMoods } = await supabase
+        .from('mood_entries')
+        .select('mood_type, mood_label, created_at')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(3);
+
+      // Call AI edge function to generate hint
+      const { data, error } = await supabase.functions.invoke('generate-mood-hints', {
+        body: {
+          partnerName: profile.display_name || 'Your partner',
+          moodType: moodData.value,
+          moodLabel: moodData.label,
+          note: note,
+          recentMoods: recentMoods || []
+        }
+      });
+
+      if (error) {
+        console.error('Error generating AI hint:', error);
+        return;
+      }
+
+      if (data?.hint) {
+        setAiHint(data.hint);
+        toast.success('💡 AI hint generated for your partner!', {
+          description: 'Your partner will see a personalized suggestion based on your mood.'
+        });
+      }
+
+    } catch (error) {
+      console.error('Error in generateAIHintForPartner:', error);
+    } finally {
+      setIsGeneratingHint(false);
+    }
   };
 
   return (
@@ -358,29 +430,69 @@ export function MoodTracker() {
           )}
         </div>
 
-        {/* Consolation Suggestions */}
-        {getConsolationSuggestions().length > 0 && (
+        {/* AI-Powered Partner Hints */}
+        {aiHint || isGeneratingHint ? (
           <div className="pt-3 sm:pt-4 border-t">
             <h3 className="text-sm font-medium mb-2 sm:mb-3 flex items-center gap-2">
-              <Lightbulb className="h-4 w-4 text-yellow-500" />
-              How to support your partner
+              <Sparkles className="h-4 w-4 text-primary" />
+              AI Suggestion for Your Partner
+              <Badge variant="secondary" className="text-xs">
+                <Bot className="h-3 w-3 mr-1" />
+                Powered by AI
+              </Badge>
             </h3>
-            <div className="space-y-2">
-              {getConsolationSuggestions().map((suggestion, index) => {
-                const Icon = suggestion.icon;
-                return (
-                  <div
-                    key={index}
-                    className="consolation-suggestion flex items-center gap-2 p-2 bg-gradient-soft rounded-lg hover:bg-gradient-romantic/10 fade-in"
-                    style={{ animationDelay: `${index * 0.1}s` }}
-                  >
-                    <Icon className={`h-4 w-4 ${suggestion.color}`} />
-                    <span className="text-sm text-muted-foreground">{suggestion.text}</span>
+            
+            {isGeneratingHint ? (
+              <div className="p-4 bg-gradient-romantic/5 rounded-lg border border-primary/10 animate-pulse">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-primary animate-spin" />
+                  <span className="text-sm text-muted-foreground">
+                    Generating personalized suggestion...
+                  </span>
+                </div>
+              </div>
+            ) : aiHint ? (
+              <div className="p-4 bg-gradient-romantic/5 rounded-lg border border-primary/10 fade-in">
+                <div className="flex items-start gap-3">
+                  <Sparkles className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                  <div className="flex-1">
+                    <p className="text-sm text-foreground leading-relaxed">
+                      {aiHint}
+                    </p>
+                    <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+                      <Bot className="h-3 w-3" />
+                      <span>Generated based on your partner's current mood</span>
+                    </div>
                   </div>
-                );
-              })}
-            </div>
+                </div>
+              </div>
+            ) : null}
           </div>
+        ) : (
+          /* Fallback Consolation Suggestions */
+          getConsolationSuggestions().length > 0 && partnerMoodData && (
+            <div className="pt-3 sm:pt-4 border-t">
+              <h3 className="text-sm font-medium mb-2 sm:mb-3 flex items-center gap-2">
+                <Lightbulb className="h-4 w-4 text-yellow-500" />
+                How to support your partner
+              </h3>
+              <div className="space-y-2">
+                {getConsolationSuggestions().map((suggestion, index) => {
+                  const Icon = suggestion.icon;
+                  return (
+                    <div
+                      key={index}
+                      className="consolation-suggestion flex items-center gap-2 p-2 bg-gradient-soft rounded-lg hover:bg-gradient-romantic/10 fade-in"
+                      style={{ animationDelay: `${index * 0.1}s` }}
+                    >
+                      <Icon className={`h-4 w-4 ${suggestion.color}`} />
+                      <span className="text-sm text-muted-foreground">{suggestion.text}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )
         )}
 
         {/* Mood History Section */}
