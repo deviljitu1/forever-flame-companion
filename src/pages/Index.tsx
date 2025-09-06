@@ -9,11 +9,12 @@ import { CoupleGames } from '@/components/CoupleGames';
 import { NotificationPanel } from '@/components/NotificationPanel';
 import { SettingsPanel } from '@/components/SettingsPanel';
 import { PartnershipManager } from '@/components/PartnershipManager';
+import { AIChatAssistant } from '@/components/AIChatAssistant';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Heart, Users, Bell, Settings, Calendar, Gift, MessageCircle, Star, Home, Smile, Gamepad2, LogOut } from 'lucide-react';
+import { Heart, Users, Bell, Settings, Calendar, Gift, MessageCircle, Star, Home, Smile, Gamepad2, LogOut, Bot } from 'lucide-react';
 
 // Placeholder for missing components
 const MissingComponent = ({ name }: { name: string }) => (
@@ -160,7 +161,7 @@ const Index = () => {
       <main className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
         {/* Navigation Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-          <TabsList className="grid grid-cols-6 md:grid-cols-8 mb-4 bg-muted/50">
+          <TabsList className="grid grid-cols-7 md:grid-cols-9 mb-4 bg-muted/50">
             <TabsTrigger value="dashboard" className="text-xs md:text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-red-500 data-[state=active]:text-white">
               <Home className="h-3 w-3 md:mr-1" />
               <span className="hidden md:inline">Dashboard</span>
@@ -172,6 +173,10 @@ const Index = () => {
             <TabsTrigger value="mood" className="text-xs md:text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-red-500 data-[state=active]:text-white">
               <Smile className="h-3 w-3 md:mr-1" />
               <span className="hidden md:inline">Mood</span>
+            </TabsTrigger>
+            <TabsTrigger value="ai-chat" className="text-xs md:text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-red-500 data-[state=active]:text-white">
+              <Bot className="h-3 w-3 md:mr-1" />
+              <span className="hidden md:inline">AI Coach</span>
             </TabsTrigger>
             <TabsTrigger value="gifts" className="text-xs md:text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-red-500 data-[state=active]:text-white">
               <Gift className="h-3 w-3 md:mr-1" />
@@ -342,6 +347,13 @@ const Index = () => {
             <MoodTracker />
           </TabsContent>
 
+          {/* AI Chat Tab */}
+          <TabsContent value="ai-chat" className="space-y-6">
+            <div className="h-[600px]">
+              <AIChatAssistant />
+            </div>
+          </TabsContent>
+
           {/* Gifts Tab */}
           <TabsContent value="gifts" className="space-y-6">
             <GiftPlanner />
@@ -365,6 +377,9 @@ const Index = () => {
           {/* More Tab (Mobile only) */}
           <TabsContent value="more" className="md:hidden space-y-6">
             <div className="grid grid-cols-1 gap-6">
+              <div className="h-[500px]">
+                <AIChatAssistant />
+              </div>
               <ActualCoupleGames />
               <Card className="border-0 shadow-md">
                 <CardContent className="p-6">
