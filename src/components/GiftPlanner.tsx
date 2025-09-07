@@ -42,6 +42,7 @@ const initialGiftSuggestions = [
 ];
 
 export function GiftPlanner() {
+  const { settings } = useSettings();
   const [customIdea, setCustomIdea] = useState('');
   const [suggestions, setSuggestions] = useState(initialGiftSuggestions);
   const [customIdeas, setCustomIdeas] = useState([]);

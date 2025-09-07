@@ -1,5 +1,7 @@
 
 import { useState } from 'react';
+import React from 'react';
+import { useSettings } from '@/hooks/useSettings';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -118,9 +120,21 @@ export function SettingsPanel({ children }: SettingsPanelProps) {
     setSettings(prev => ({ ...prev, [key]: value }));
   };
 
-  const handleSave = () => {
-    console.log('Saving enhanced settings:', settings);
-    // Add API call to save settings
+  const { settings: globalSettings, updateSetting: updateGlobalSetting, saveSettings } = useSettings();
+
+  // Sync local settings with global settings
+  React.useEffect(() => {
+    setSettings(globalSettings);
+  }, [globalSettings]);
+
+  const updateSetting = (key: string, value: boolean | string | number[]) => {
+    setSettings(prev => ({ ...prev, [key]: value }));
+    updateGlobalSetting(key as any, value);
+  };
+
+  const handleSave = async () => {
+    await saveSettings();
+    console.log('Settings saved successfully!');
   };
 
   return (
