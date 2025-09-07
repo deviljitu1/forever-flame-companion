@@ -1,9 +1,12 @@
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Gift, Plus, Calendar, Sparkles, X, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { Calendar, Gift, Sparkles, Plus, X, CalendarDays, Trash2 } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { useSettings } from '@/hooks/useSettings';
 
 // Initial gift suggestions
 const initialGiftSuggestions = [

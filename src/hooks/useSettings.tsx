@@ -182,13 +182,15 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         .from('profiles')
         .select('display_name, settings')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
-        throw error;
+      if (error) {
+        console.error('Error loading settings:', error);
+        setIsLoading(false);
+        return;
       }
 
-      if (profile?.settings) {
+      if (profile?.settings && typeof profile.settings === 'object') {
         setSettings({ ...defaultSettings, ...profile.settings });
       }
       

@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import React from 'react';
-import { useSettings } from '@/hooks/useSettings';
+import { AppSettings, useSettings } from '@/hooks/useSettings';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -42,95 +42,7 @@ interface SettingsPanelProps {
 }
 
 export function SettingsPanel({ children }: SettingsPanelProps) {
-  const [settings, setSettings] = useState({
-    // Profile settings
-    displayName: 'Alex Johnson',
-    bio: 'In love with the most amazing person! 💕',
-    relationshipStartDate: '2024-01-15',
-    partnerName: 'Sarah Johnson',
-
-    // Notification settings
-    moodNotifications: true,
-    dateReminders: true,
-    giftSuggestions: true,
-    partnerActivity: true,
-    dailyReminders: false,
-    surpriseAlerts: true,
-    consolationTips: true,
-    weeklyPlanning: true,
-
-    // Gift & Surprise Planning
-    autoGiftPlanning: true,
-    giftBudget: [100], // Array for slider
-    surpriseFrequency: 'weekly',
-    favoriteGiftCategories: ['flowers', 'chocolates', 'experiences'],
-    giftDeliveryReminders: true,
-    localGiftSuggestions: true,
-
-    // Mood & AI Settings
-    aiMoodDetection: true,
-    moodSharingLevel: 'hints', // 'full', 'hints', 'basic'
-    aiSuggestionFrequency: 'smart', // 'frequent', 'smart', 'minimal'
-    emotionalAnalysis: true,
-    moodHistoryTracking: true,
-    aiPersonalization: true,
-    consolationStrategies: true,
-
-    // Long Distance Features
-    isLongDistance: false,
-    timezoneSync: true,
-    virtualDatePlanning: false,
-    giftDeliveryIntegration: false,
-    qualityTimeReminders: true,
-    communicationScheduling: false,
-
-    // Gaming & Activities
-    coupleGames: true,
-    dailyChallenges: true,
-    relationshipQuizzes: true,
-    moodBasedGames: true,
-    competitiveMode: false,
-    gameNotifications: true,
-
-    // Special Dates & Events
-    birthdayReminders: true,
-    anniversaryTracking: true,
-    customEventReminders: true,
-    weekendPlanning: true,
-    monthlyGoals: false,
-    countdownEvents: true,
-
-    // Privacy settings
-    shareLocation: false,
-    publicProfile: false,
-    dataSync: true,
-    moodDataSharing: 'partner-only', // 'partner-only', 'anonymous', 'private'
-    aiDataUsage: 'improve-suggestions',
-
-    // App preferences
-    darkMode: false,
-    animations: true,
-    pushNotifications: true,
-    smartNotificationTiming: true,
-    voiceAssistant: false,
-    hapticFeedback: true,
-  });
-
-  const updateSetting = (key: string, value: boolean | string | number[]) => {
-    setSettings(prev => ({ ...prev, [key]: value }));
-  };
-
-  const { settings: globalSettings, updateSetting: updateGlobalSetting, saveSettings } = useSettings();
-
-  // Sync local settings with global settings
-  React.useEffect(() => {
-    setSettings(globalSettings);
-  }, [globalSettings]);
-
-  const updateSetting = (key: string, value: boolean | string | number[]) => {
-    setSettings(prev => ({ ...prev, [key]: value }));
-    updateGlobalSetting(key as any, value);
-  };
+  const { settings, updateSetting, saveSettings } = useSettings();
 
   const handleSave = async () => {
     await saveSettings();

@@ -10,6 +10,10 @@ import { NotificationPanel } from '@/components/NotificationPanel';
 import { SettingsPanel } from '@/components/SettingsPanel';
 import { PartnershipManager } from '@/components/PartnershipManager';
 import { AIChatAssistant } from '@/components/AIChatAssistant';
+import { DailyChallenges } from '@/components/DailyChallenges';
+import { WeekendPlanner } from '@/components/WeekendPlanner';
+import { CountdownEvents } from '@/components/CountdownEvents';
+import { MonthlyGoals } from '@/components/MonthlyGoals';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -26,9 +30,8 @@ const MissingComponent = ({ name }: { name: string }) => (
 );
 
 // Use actual components or placeholders
-const ActualCoupleGames = CoupleGames || (() => <MissingComponent name="CoupleGames" />);
-const ActualNotificationPanel = NotificationPanel || (({ children }) => <>{children}</>);
-const ActualSettingsPanel = SettingsPanel || (({ children }) => <>{children}</>);
+const ActualNotificationPanel = NotificationPanel || (({ children }: any) => <>{children}</>);
+const ActualSettingsPanel = SettingsPanel || (({ children }: any) => <>{children}</>);
 
 const Index = () => {
   const { user, loading, signOut } = useAuth();
@@ -236,63 +239,16 @@ const Index = () => {
             </Card>
 
             {/* Dashboard Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-              {/* Left Column */}
-              <div className="space-y-4 sm:space-y-6 lg:col-span-2">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-                  <div>
-                    <MoodTracker />
-                  </div>
-                  <div>
-                    <GiftPlanner />
-                  </div>
-                </div>
-                
-                <div>
-                  <ActualCoupleGames />
-                </div>
-              </div>
-              
-              {/* Right Column */}
-              <div className="space-y-4 sm:space-y-6">
-                <div>
-                  <SpecialDates />
-                </div>
-                
-                <div>
-                  <LoveMessages />
-                </div>
-                
-                {/* Quick Stats */}
-                <div>
-                  <Card className="border-0 bg-gradient-to-br from-white to-pink-50 shadow-md">
-                    <CardContent className="p-4 sm:p-5">
-                      <h3 className="font-semibold mb-4 flex items-center gap-2 text-pink-600">
-                        <Heart className="h-4 w-4" />
-                        Love Stats
-                      </h3>
-                      <div className="grid grid-cols-2 gap-3 text-center">
-                        <div className="p-3 bg-pink-500/5 rounded-xl border border-pink-500/10 transition-transform hover:scale-105">
-                          <div className="text-lg sm:text-xl font-bold text-pink-600">127</div>
-                          <div className="text-xs text-muted-foreground mt-1">Days Together</div>
-                        </div>
-                        <div className="p-3 bg-red-500/5 rounded-xl border border-red-500/10 transition-transform hover:scale-105">
-                          <div className="text-lg sm:text-xl font-bold text-red-600">23</div>
-                          <div className="text-xs text-muted-foreground mt-1">Surprises Planned</div>
-                        </div>
-                        <div className="p-3 bg-green-500/5 rounded-xl border border-green-500/10 transition-transform hover:scale-105">
-                          <div className="text-lg sm:text-xl font-bold text-green-600">8.5</div>
-                          <div className="text-xs text-muted-foreground mt-1">Happiness Score</div>
-                        </div>
-                        <div className="p-3 bg-purple-500/5 rounded-xl border border-purple-500/10 transition-transform hover:scale-105">
-                          <div className="text-lg sm:text-xl font-bold text-purple-600">12</div>
-                          <div className="text-xs text-muted-foreground mt-1">Messages Sent</div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
+            <div className="grid gap-6 lg:grid-cols-2">
+              <MoodTracker />
+              <GiftPlanner />
+              <DailyChallenges />
+              <WeekendPlanner />
+              <CountdownEvents />
+              <MonthlyGoals />
+              <CoupleGames />
+              <LoveMessages />
+              <SpecialDates />
             </div>
 
             {/* Partner Connection Status (Mobile) */}
@@ -371,7 +327,7 @@ const Index = () => {
 
           {/* Games Tab */}
           <TabsContent value="games" className="space-y-6">
-            <ActualCoupleGames />
+            <CoupleGames />
           </TabsContent>
 
           {/* More Tab (Mobile only) */}
@@ -380,7 +336,7 @@ const Index = () => {
               <div className="h-[500px]">
                 <AIChatAssistant />
               </div>
-              <ActualCoupleGames />
+              <CoupleGames />
               <Card className="border-0 shadow-md">
                 <CardContent className="p-6">
                   <h3 className="font-semibold mb-4 text-pink-600">App Settings</h3>
